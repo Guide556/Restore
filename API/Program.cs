@@ -16,6 +16,22 @@ builder.Services.AddDbContext<StoreContext>(opt =>
     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+#region CORS
+var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy  =>
+                      {
+                          policy.AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials() //ไว้ใช้ Cookie
+                          .WithOrigins("http://localhost:3000");
+                      });
+});
+#endregion
+
 var app = builder.Build();
 
 #region //สร้ํางข้อมูลจ ําลอง Fake data
@@ -43,6 +59,8 @@ if (app.Environment.IsDevelopment())
 //app.UseHttpsRedirection();
 
 app.UseRouting();
+
+app.UseCors(MyAllowSpecificOrigins);
 
 app.UseAuthorization();
 
