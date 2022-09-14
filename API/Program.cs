@@ -1,4 +1,5 @@
 using API.Data;
+using API.Middleware;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,7 +35,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-#region //สร้ํางข้อมูลจ ําลอง Fake data
+#region //สร้างข้อมูลจำลอง Fake data
 using var scope = app.Services.CreateScope(); //using หลังท ํางํานเสร็จจะถูกท ําลํายจํากMemory
 var context = scope.ServiceProvider.GetRequiredService<StoreContext>();
 var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
@@ -57,6 +58,10 @@ if (app.Environment.IsDevelopment())
 }
 
 //app.UseHttpsRedirection();
+
+#region ส่ง error ไปให้ Axios ตอนทำ Interceptor
+app.UseMiddleware<ExceptionMiddleware>();
+#endregion
 
 app.UseRouting();
 
