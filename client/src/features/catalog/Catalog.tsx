@@ -10,7 +10,7 @@ export default function Catalog() {
   const [products, setProducts]=useState<Product[]>([])
   const [loading, setLoading] = useState(true);
 
-
+  
   useEffect(() => {    
     agent.Catalog.list()    
     .then((response : any)=>{setProducts(response)})

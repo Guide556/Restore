@@ -1,12 +1,11 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { history } from "../..";
 
-
-
 //เรียกใช้
 axios.defaults.baseURL = "http://localhost:5000/api/";
+axios.defaults.withCredentials = true;
 
 const ResponseBody = (response: AxiosResponse) => response.data;
 //ดีเลย์กี่วิ
@@ -43,7 +42,7 @@ axios.interceptors.response.use(
         toast.error(result.title);
         break;
       case 500:
-       history.push('/server-error',{state:data})
+        history.push("/server-error", { state: data });
         toast.error(result.title);
         break;
       default:
@@ -53,14 +52,15 @@ axios.interceptors.response.use(
 );
 
 
-
 const requests = {
   get: (url: string) => axios.get(url).then(ResponseBody),
+  post: (url: string, body?: {}) => axios.post(url, body).then(ResponseBody),
+  delete: (url: string) => axios.delete(url).then(ResponseBody),
 };
 
 const Catalog = {
-  list: () => requests.get("Products"),
-  details: (id: number) => requests.get(`products/${id}`),
+  list: () => requests.get("Product"),
+  details: (id: number) => requests.get(`product/${id}`),
 };
 
 const TestErrors = {
@@ -71,9 +71,18 @@ const TestErrors = {
   getValidationError: () => requests.get("buggy/GetValidationError"),
 };
 
+const Basket = {
+  get: () => requests.get("basket"),
+  addItem: (productId: number, quantity = 1) =>
+    requests.post(`basket?productId=${productId}&quantity=${quantity}`, {}),
+  removeItem: (productId: number, quantity = 1) =>
+    requests.delete(`basket?productId=${productId}&quantity=${quantity}`),
+};
+
 const agent = {
   Catalog,
   TestErrors,
+  Basket
 };
 
 export default agent;

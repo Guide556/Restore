@@ -1,8 +1,11 @@
 import { Box, AppBar, Toolbar, Switch, Typography, Badge, Button, IconButton, Divider, List, ListItem, ListItemButton, ListItemIcon, ListItemText } from "@mui/material";
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { NavLink } from "react-router-dom";
+import { useStoreContext } from "../context/StoreContext";
+import { Link } from "react-router-dom";
 
 const midLinks = [
+  // { title: "Home", path: "/" },
   { title: "catalog", path: "/catalog" },
   { title: "about", path: "/about" },
   { title: "contact", path: "/contact" },
@@ -26,6 +29,10 @@ const navStyles = {
   };
 
 export default function Header(props: any) {
+
+  const { basket } = useStoreContext();
+  const itemCount = basket?.items.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
@@ -34,9 +41,9 @@ export default function Header(props: any) {
           <Box sx={{display:"flex", alignItems:'center'}}>
             <Switch defaultChecked onChange={props.handleMode} color="default" />
 
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            <IconButton component={Link} to="/" sx={{ flexGrow: 1 }} >
               TV Direct
-            </Typography>
+            </IconButton>
           </Box>
 
           <List sx={{ display: 'flex' }}>
@@ -46,8 +53,8 @@ export default function Header(props: any) {
           </List>
      
           <Box sx={{ display: 'flex' }}>
-          <IconButton size="large">
-          <Badge color="secondary" badgeContent={10}>
+          <IconButton size="large" component={Link} to='/basket'>
+          <Badge color="secondary" badgeContent={itemCount}>
                 <ShoppingCartIcon />
             </Badge>
           </IconButton>
