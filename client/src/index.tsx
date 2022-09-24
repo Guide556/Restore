@@ -12,21 +12,22 @@ import { StoreProvider } from './app/context/StoreContext';
 
 import { store } from './app/store/configureStore';
 import { Provider } from "react-redux";
+import { fetchProductsAsync } from './features/catalog/catalogSlice';
 
 export const history = createBrowserHistory({ window });
 
 console.log(store.getState())
+store.dispatch(fetchProductsAsync())
+
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <HistoryRouter history={history}>
-    <StoreProvider>
       <Provider store={store}>
         <App />
-      </Provider>
-    </StoreProvider>
+      </Provider>  
   </HistoryRouter>
 );
 

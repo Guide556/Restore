@@ -24,10 +24,12 @@ import ContactPage from '../../features/contact/ContactPage';
 
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
-import { useAppSelector } from '../store/configureStore';
+import { useAppDispatch, useAppSelector } from '../store/configureStore';
+import { setBasket } from '../../features/basket/basketSlice';
 
 export default function App() {
-  const { setBasket } = useStoreContext(); //ควบคุมสเตทด้วย React context to Centralize
+  // const { setBasket } = useStoreContext(); //ควบคุมสเตทด้วย React context to Centralize
+  const dispatch = useAppDispatch()
   const [loading, setLoading] = useState(true);
   const {fullscreen} = useAppSelector(state=>state.screen)
 
@@ -35,11 +37,11 @@ export default function App() {
     const buyerId = getCookie("buyerId");
     if (buyerId) {
       agent.Basket.get()
-        .then((basket) => setBasket(basket))
+        .then((basket) => dispatch(setBasket(basket)))
         .catch((error) => console.log(error))
         .finally(() => setLoading(false));
     } else setLoading(false);
-  }, [setBasket]);
+  }, [dispatch]);
 
   const [mode, setMode] = useState(false)
   const displayMode = mode ? 'light' : 'dark'
@@ -80,5 +82,5 @@ const mainroute =  (<Routes>
 <Route path='/server-error' element={<ServerError />} />         
 <Route path="/basket" element={<BasketPage />} />          
 <Route path="/checkout" element={< CheckoutPage/>} />    
-<Route path='*' element={<NotFound />} />
+<Route path='*' element={<NotFound/>} />
 </Routes>)

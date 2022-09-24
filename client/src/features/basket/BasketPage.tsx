@@ -1,94 +1,118 @@
-import * as React from 'react';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import { useStoreContext } from '../../app/context/StoreContext';
-import { Box, Button, Grid } from '@mui/material';
-import { currencyFormat } from '../../app/util/Util';
-import { LoadingButton } from '@mui/lab';
-import { Add, Delete, Remove } from '@mui/icons-material';
-import { useState } from 'react';
-import agent from '../../app/api/agent';
-import BasketSummary from './BasketSummary';
-import { Link } from 'react-router-dom';
+import * as React from "react";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Paper from "@mui/material/Paper";
+import { useStoreContext } from "../../app/context/StoreContext";
+import { Box, Button, Grid } from "@mui/material";
+import { currencyFormat } from "../../app/util/Util";
+import { LoadingButton } from "@mui/lab";
+import { Add, Delete, Remove } from "@mui/icons-material";
+import { useState } from "react";
+import agent from "../../app/api/agent";
+import BasketSummary from "./BasketSummary";
+import { Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
+import { setBasket, removeItem, removeBasketItemAsync, addBasketItemAsync } from "./basketSlice";
 
 export default function BasketPage() {
 
-  //name ใช้ควบคุม LoadingButton ให้หมุนเพียงจุดเดียว ณ เวลําใดเวลําหนึ่ง
-  const [status, setStatus] = useState({
-    loading: false,
-    name: "",
-  });
-
-  const { basket, setBasket, removeItem } = useStoreContext();
-
-  function handleAddItem(productId: number, name: string) {
-    setStatus({ loading: true, name });
-    agent.Basket.addItem(productId)
-      .then((basket) => setBasket(basket))
-      .catch((error) => console.log(error))
-      .finally(() => setStatus({ loading: false, name: "" }));
-  }
-
-  function handleRemoveItem(productId: number, quantity = 1, name: string) {
-    setStatus({ loading: true, name: name });
-    agent.Basket.removeItem(productId, quantity)
-      .then(() => removeItem(productId, quantity))
-      .catch((error) => console.log(error))
-      .finally(() => setStatus({ loading: false, name: "" }));
-  }
+  const dispatch = useAppDispatch();
+  const { basket, status } = useAppSelector(state => state.basket);
 
   return (
     <>
-      <TableContainer component={Paper} sx={{ mt: 2 }}>
+      <TableContainer component={Paper} sx={{mt:3}}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
             <TableRow>
               <TableCell>Product</TableCell>
               <TableCell align="right">Price</TableCell>
               <TableCell align="center">Quantity</TableCell>
-              <TableCell align="left">Subtotal</TableCell>
-              <TableCell align="left"></TableCell>
-
-
+              <TableCell align="right">Subtotal</TableCell>
+              <TableCell align="right"></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {basket?.items.map((item) => (
               <TableRow
                 key={item.productId}
-                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
               >
                 <TableCell component="th" scope="row">
-                  <Box>
-                    <img src={item.pictureUrl} alt={item.name} width='100' />
+                  <Box display="flex" alignItems="center">
+                    <img
+                      src={item.pictureUrl}
+                      alt={item.name}
+                      style={{ height: 50, margin: 20 }}
+                    />
                     {item.name}
                   </Box>
                 </TableCell>
-                <TableCell align="right">{currencyFormat(item.price)}</TableCell>
-
+                <TableCell align="right">
+                  {currencyFormat(item.price)}
+                </TableCell>
                 <TableCell align="center">
-                  <LoadingButton loading={status.loading && status.name === "remove" + item.productId.toString()} onClick={() => handleRemoveItem(item.productId, 1, "remove" + item.productId.toString())}>
+                  <LoadingButton
+                    loading={
+                      status === "pendingRemoveItem" + item.productId + "rem"
+                    }
+                    onClick={() =>
+                      dispatch(
+                        removeBasketItemAsync({
+                          productId: item.productId,
+                          quantity: 1,
+                          name: "rem",
+                        })
+                      )
+                    }
+                    color="error"
+                  >
                     <Remove />
                   </LoadingButton>
 
                   {item.quantity}
 
-                  <LoadingButton loading={status.loading && status.name === "add" + item.productId.toString()} onClick={() => handleAddItem(item.productId, "add" + item.productId.toString())}>
+                  <LoadingButton
+                    loading={status === "pendingAddItem" + item.productId}
+                    onClick={() =>
+                      dispatch(
+                        addBasketItemAsync({ productId: item.productId })
+                      )
+                    }
+                    color="error"
+                  >
                     <Add />
                   </LoadingButton>
+
+
                 </TableCell>
+                <TableCell align="right">
+                  {item.price * item.quantity}
+                </TableCell>
+                <TableCell align="right">
 
-                <TableCell align="left">{currencyFormat(item.quantity * item.price)}</TableCell>
-
-                <TableCell>
-                  <LoadingButton loading={status.loading && status.name === "del" + item.productId.toString()} onClick={() => handleRemoveItem(item.productId, item.quantity, "del" + item.productId.toString())}>
+                  <LoadingButton
+                    loading={status === "pendingRemoveItem" + item.productId + "del"}
+                    onClick={() =>
+                      dispatch(
+                        removeBasketItemAsync({
+                          productId: item.productId,
+                          quantity: item.quantity,
+                          name: "del"
+                          ,
+                        })
+                      )
+                    }
+                    color="error"
+                  >
                     <Delete />
                   </LoadingButton>
+
                 </TableCell>
               </TableRow>
             ))}
@@ -96,7 +120,7 @@ export default function BasketPage() {
         </Table>
       </TableContainer>
 
-      <Grid container sx={{ mt: 2 }}>
+      <Grid container sx={{mt:2}}>
         <Grid item xs={6} />
         <Grid item xs={6}>
           <BasketSummary />
@@ -111,7 +135,6 @@ export default function BasketPage() {
           </Button>
         </Grid>
       </Grid>
-
     </>
   );
 }

@@ -2,10 +2,11 @@ import {
     TableContainer, Paper, Table, TableBody, TableRow,
     TableCell,
 } from "@mui/material";
-import { useStoreContext } from "../../app/context/StoreContext";
+import { useAppSelector } from "../../app/store/configureStore";
 import { currencyFormat } from "../../app/util/Util";
+
 export default function BasketSummary() {
-    const { basket } = useStoreContext();
+    const { basket } = useAppSelector(state=>state.basket);
     const subtotal =
         basket?.items.reduce((sum, item) => sum + item.quantity * item.price, 0) ??
         0;

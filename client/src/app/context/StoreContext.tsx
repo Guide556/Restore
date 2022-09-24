@@ -1,14 +1,17 @@
 import { createContext, PropsWithChildren, useContext, useState } from "react";
 import { Basket } from "../models/Basket";
+
 interface StoreContextValue {
     basket: Basket | null;
     setBasket: (basket: Basket) => void;
     removeItem: (productId: number, quantity: number) => void;
 }
+
 //ก ําหนดค่ําไว้ก่อน(สร้ํางห้องครัวเปล่ําๆ)
 export const StoreContext = createContext<StoreContextValue | undefined>(
     undefined
 );
+
 //2.ถูกเรียกใช้จํากภํายนอก
 export function useStoreContext() {
     const context = useContext(StoreContext);
@@ -17,9 +20,11 @@ export function useStoreContext() {
     }
     return context;
 }
+
 //1.สร้ํางสเตทไว้ภํายใน และน ําไปครอบ { children } ที่ต้องกํารใช้(Index.tsx)
 export function StoreProvider({ children }: PropsWithChildren<any>) {
     const [basket, setBasket] = useState<Basket | null>(null);
+    
     function removeItem(productId: number, quantity: number) {
         if (!basket) return;
         const items = [...basket.items];
