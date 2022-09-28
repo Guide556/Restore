@@ -2,6 +2,7 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { history } from "../..";
+import { PaginatedResponse } from "../models/pagination";
 
 //เรียกใช้
 axios.defaults.baseURL = "http://localhost:5000/api/";
@@ -14,6 +15,15 @@ const sleep = () => new Promise((_) => setTimeout(_, 200));
 axios.interceptors.response.use(
   async (response) => {
     await sleep();
+    const pagination = response.headers["pagination"]; //ส่งมำจำก ProductController
+    if (pagination) {
+      response.data = new PaginatedResponse(
+        response.data,
+        JSON.parse(pagination)
+      );
+      return response;
+    }
+
     return response;
   },
   (error: AxiosError) => {
@@ -53,14 +63,15 @@ axios.interceptors.response.use(
 
 
 const requests = {
-  get: (url: string) => axios.get(url).then(ResponseBody),
+  get: (url: string, params?: URLSearchParams) => axios.get(url, {params}).then(ResponseBody),
   post: (url: string, body?: {}) => axios.post(url, body).then(ResponseBody),
   delete: (url: string) => axios.delete(url).then(ResponseBody),
 };
 
 const Catalog = {
-  list: () => requests.get("Product"),
+  list: (params: URLSearchParams) => requests.get('product', params),
   details: (id: number) => requests.get(`product/${id}`),
+  fetchFilters: () => requests.get('product/filters'),
 };
 
 const TestErrors = {

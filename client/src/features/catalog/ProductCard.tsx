@@ -38,7 +38,7 @@ export default function ProductCard({product} : Props) {
 
     <CardMedia
       component="img"
-      height="500"
+      height="200"
       // image={`https://picsum.photos/200/300?${Math.random()}`}
       sx={{backgroundSize:"container",bgcolor:'#FFFFCC'}}
       image={product.pictureUrl}
