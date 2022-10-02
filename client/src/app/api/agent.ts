@@ -3,12 +3,22 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { history } from "../..";
 import { PaginatedResponse } from "../models/pagination";
+import { store } from "../store/configureStore";
 
 //เรียกใช้
 axios.defaults.baseURL = "http://localhost:5000/api/";
 axios.defaults.withCredentials = true;
 
 const ResponseBody = (response: AxiosResponse) => response.data;
+
+//แนบ token ไปกับ Header
+axios.interceptors.request.use((config: any) => {
+  const token = store.getState().account.user?.token; //เรียกใช้State โดยตรง
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+  })
+  
+
 //ดีเลย์กี่วิ
 const sleep = () => new Promise((_) => setTimeout(_, 200));
 
@@ -90,10 +100,25 @@ const Basket = {
     requests.delete(`basket?productId=${productId}&quantity=${quantity}`),
 };
 
+const Account = {
+  login: (values: any) => requests.post('account/login', values),
+  register: (values: any) => requests.post('account/register', values),
+  currentUser: () => requests.get('account/currentUser'),
+  fetchAddress: () => requests.get('account/savedAddress')
+  }
+
+const Orders = {
+  list: () => requests.get("orders"),
+  fetch: (id: number) => requests.get(`orders/${id}`),
+  create: (values: any) => requests.post("orders", values),
+};
+
 const agent = {
   Catalog,
   TestErrors,
-  Basket
+  Basket,
+  Account,
+  Orders
 };
 
 export default agent;
