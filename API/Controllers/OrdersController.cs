@@ -67,7 +67,9 @@ namespace API.Controllers
                 productItem.QuantityInStock -= item.Quantity; //ลดจ านวนสินค้าในสต๊อก
             }
             var subtotal = items.Sum(item => item.Price * item.Quantity);
+            
             var deliveryFee = subtotal > 10000 ? 0 : 500;
+            
             //รวบรวม Order,OrderItems
             var order = new Order
             {
@@ -76,10 +78,13 @@ namespace API.Controllers
                 ShippingAddress = orderDto.ShippingAddress,
                 Subtotal = subtotal,
                 DeliveryFee = deliveryFee,
+                PaymentIntentId = basket.PaymentIntentId
+
             };
 
             _context.Orders.Add(order); //สร้าง Order และ OrderItem ในขั้นตอนเดียว
             _context.Baskets.Remove(basket); //ลบ Basket และ BasketItem ในข้นั ตอนเดียว
+
             if (orderDto.SaveAddress) //กรณีต้องการบันทึกที่อยุ่จัดส่งลง UserAddress
             {
                 var user = await _context.Users
@@ -97,6 +102,7 @@ namespace API.Controllers
                 };
                 user.Address = address;
             }
+
             //บันทึกทุก transaction ครั้งเดียว
             var result = await _context.SaveChangesAsync() > 0;
             if (result) return CreatedAtRoute("GetOrder", new { id = order.Id }, order.Id);

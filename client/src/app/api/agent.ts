@@ -11,6 +11,10 @@ axios.defaults.withCredentials = true;
 
 const ResponseBody = (response: AxiosResponse) => response.data;
 
+const Payments = {
+  createPaymentIntent: () => requests.post("payments", {}),
+};
+
 //แนบ token ไปกับ Header
 axios.interceptors.request.use((config: any) => {
   const token = store.getState().account.user?.token; //เรียกใช้State โดยตรง
@@ -118,7 +122,8 @@ const agent = {
   TestErrors,
   Basket,
   Account,
-  Orders
+  Orders,
+  Payments
 };
 
 export default agent;
