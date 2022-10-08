@@ -12,48 +12,49 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
 
+builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-
 #region Swagger Config
 builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "Jwt auth header",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
+        c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
+        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Description = "Jwt auth header",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.ApiKey,
+            Scheme = "Bearer"
+        });
+        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            },
+                            Scheme = "oauth2",
+                            Name = "Bearer",
+                            In = ParameterLocation.Header
+                        },
+                        new List<string>()
+                    }
+        });
     });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-{
-{
-new OpenApiSecurityScheme
-{
-    Reference = new OpenApiReference
-    {
-        Type = ReferenceType.SecurityScheme,
-        Id = "Bearer"
-    },
-    Scheme = "oauth2",
-    Name = "Bearer",
-    In = ParameterLocation.Header
-},
-new List<string>()
-}
-});
-});
 #endregion
 
 #region เชื่อมต่อไปยัง heroku Server และใช้ค่าที่ config ไว้แล้วในฝั่ง Heroku
 builder.Services.AddDbContext<StoreContext>(options =>
 {
     var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
     string connStr;
+
     if (env == "Development")
     {
         // Use connection string from file.
@@ -63,6 +64,7 @@ builder.Services.AddDbContext<StoreContext>(options =>
     {
         // Use connection string provided at runtime by Heroku.
         var connUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+
         // Parse connection URL to connection string for Npgsql
         connUrl = connUrl.Replace("postgres://", string.Empty);
         var pgUserPass = connUrl.Split("@")[0];
@@ -73,8 +75,10 @@ builder.Services.AddDbContext<StoreContext>(options =>
         var pgPass = pgUserPass.Split(":")[1];
         var pgHost = pgHostPort.Split(":")[0];
         var pgPort = pgHostPort.Split(":")[1];
-        connStr = $"Server={pgHost};Port={pgPort};UserId ={ pgUser}; Password ={ pgPass}; Database ={ pgDb}; SSL Mode = Require; Trust ServerCertificate = true";
+
+        connStr = $"Server={pgHost};Port={pgPort};User Id={pgUser};Password={pgPass};Database={pgDb};";
     }
+
     // Whether the connection string came from the local development configuration file
     // or from the environment variable from Heroku, use it to set up your DbContext.
     options.UseNpgsql(connStr);
@@ -83,100 +87,93 @@ builder.Services.AddDbContext<StoreContext>(options =>
 
 #region Cors
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(MyAllowSpecificOrigins,
-
-    policy =>
-    {
-        policy.AllowAnyHeader()
-    .AllowAnyMethod()
-    .AllowCredentials()
-    .WithOrigins("http://localhost:3000");
-    });
-
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy.AllowAnyHeader()
+                          .AllowAnyMethod()   //
+                          .AllowCredentials() //อนุญาตให้ใช้คุกกี้
+                          .WithOrigins("http://localhost:3000");
+                      });
 });
-
-//AllowCredentials() อนุญาตให้client ใช้คุกกี้ของ Api ได้
 #endregion
-#region Identityสร้างเซอร์วิส User,Role (ระวังการเรียงล าดับ)
+
+#region Identityสร้างเซอร์วิส User,Role (ระวังการเรียงลำดับ)
 builder.Services.AddIdentityCore<User>(opt =>
 {
     opt.User.RequireUniqueEmail = true;
 })
-.AddRoles<Role>()
-.AddEntityFrameworkStores<StoreContext>();
+     .AddRoles<Role>()
+    .AddEntityFrameworkStores<StoreContext>();
+
 //ยืนยัน Token ที่ได้รับว่าถูกต้องหรือไม่บนเซิฟเวอร์
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-
-.AddJwtBearer(opt =>
-{
-    opt.TokenValidationParameters = new TokenValidationParameters
-
-    {
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
-    .GetBytes(builder.Configuration["JWTSettings:TokenKey"]))
-    };
-});
+                       .AddJwtBearer(opt =>
+                       {
+                           opt.TokenValidationParameters = new TokenValidationParameters
+                           {
+                               ValidateIssuer = false,
+                               ValidateAudience = false,
+                               ValidateLifetime = true,
+                               ValidateIssuerSigningKey = true,
+                               IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
+                                   .GetBytes(builder.Configuration["JWTSettings:TokenKey"]))
+                           };
+                       });
+#endregion
 
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<PaymentService>();
-#endregion
 
-
-//MiddleWare
 var app = builder.Build();
-#region //สร้างข้อมูลจ าลอง Fake data
-using var scope = app.Services.CreateScope(); //using หลังท างานเสร็จจะถูกท าลายจากMemory
+
+#region //สร้ํางข้อมูลจ ําลอง Fake data
+using var scope = app.Services.CreateScope(); //using หลังทำงานเสร็จจะถูกทำลายจากMemory
 var context = scope.ServiceProvider.GetRequiredService<StoreContext>();
 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
 try
 {
-    await context.Database.MigrateAsync(); //สร้าง DB ให้อัตโนมัติถ้ายังไม่มี
-    await DbInitializer.Initialize(context, userManager); //สร้างข้อมูลสินค้าและยูเซอร์จ าลอง
+    await context.Database.MigrateAsync(); //สร้ําง DB ให้อัตโนมัติถ้ํายังไม่มี
+    await DbInitializer.Initialize(context, userManager); //สร้างข้อมูลสินค้าและยูเซอร์จำลอง
 }
-
 catch (Exception ex)
 {
     logger.LogError(ex, "Problem migrating data");
 }
 #endregion
 
-#region ส่ง error ไปให้Axios ตอนท า Interceptor
-app.UseMiddleware<ExceptionMiddleware>();
-#endregion
-
-app.UseRouting(); //ระวังต้องใช้ตัวนี้มิฉนั้นตอน deploy รันไม่ได้
-app.UseDefaultFiles(); // อนุญาตให้เรียกไฟล์ต่างๆ ใน wwwroot
-app.UseStaticFiles(); // อนุญาตให้เข้าถึงไฟล์ค่าคงที่ได้
-
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-
 }
-app.UseHttpsRedirection();
+
+//app.UseHttpsRedirection(); web
+
+#region ส่ง error ไปให้Axios ตอนท ํา Interceptor
+app.UseMiddleware<ExceptionMiddleware>();
+#endregion
+
+app.UseRouting();
+
+app.UseDefaultFiles(); // อนุญาตให้เรียกไฟล์ต่างๆ ใน wwwroot
+app.UseStaticFiles();  // อนุญาตให้เข้าถึงไฟล์ค่าคงที่ได้
 
 app.UseCors(MyAllowSpecificOrigins);
 
 app.UseAuthentication();
-
 app.UseAuthorization();
 
 app.UseEndpoints(endpoints =>
 {
-endpoints.MapControllers();
-endpoints.MapFallbackToController("Index", "Fallback");
+    endpoints.MapControllers();
+    endpoints.MapFallbackToController("Index", "Fallback");
 });
 
 await app.RunAsync();
