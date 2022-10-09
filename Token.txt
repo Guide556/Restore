@@ -16,3 +16,7 @@ Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9y
 dotnet user-secrets set "StripeSettings:PublishableKey" "pk_test_51Lq9tqEZo8SpPkFW2lIDqLusfNZttS1UI37A66EepNVvmGkUsSYrw7xA5twjCFqtdZxy5UoATgy57Y7CRD0XzwS600dNCLZdIK"
 dotnet user-secrets set "StripeSettings:SecretKey" "sk_test_51Lq9tqEZo8SpPkFW8h4Eei7PvHHAHbhFt5KdKk2acHi7ejKihvdKMEjFA79miVsqXoxkGZ2ERQHmYTie8RnOPAUY004eVu8JYW"
 dotnet user-secrets set "StripeSettings:WhSecret" "whsec_9341da39a94cd7ac9b803db15016c3235f57cd8396bd7762c998f78f71225b0b"
+
+dotnet user-secrets set "Cloudinary:CloudName" "dmkhdz4ra"
+dotnet user-secrets set "Cloudinary:ApiKey" "975511737584464"
+dotnet user-secrets set "Cloudinary:ApiSecret" "fCUIQLILw6eYkMaQml5XTBcQbIw"
