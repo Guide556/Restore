@@ -1,9 +1,14 @@
 import { TextField } from '@mui/material';
 import { useController, UseControllerProps } from 'react-hook-form';
 //UseControllerProps มีคุณสมบัติname,control อยู่แล้วเลยไม่ต้องก าหนด
+
 interface Props extends UseControllerProps {
     label: string;
+    multiline?: boolean;
+    rows?: number;
+    type?: string;
 }
+
 //วิธีใช้https://react-hook-form.com/api/usecontroller
 export default function AppTextInput(props: Props) {
     const { fieldState, field } = useController({ ...props, defaultValue: "" })
@@ -11,6 +16,9 @@ export default function AppTextInput(props: Props) {
         <TextField
             {...props}
             {...field}
+            multiline={props.multiline}
+            rows={props.rows}
+            type={props.type}
             fullWidth
             variant='outlined'
             error={!!fieldState.error}

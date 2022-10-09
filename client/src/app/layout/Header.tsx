@@ -52,6 +52,12 @@ export default function Header(props: any) {
             {midLinks.map(({ title, path }) => (
               <ListItem key={title} component={NavLink} to={path} sx={navStyles}>{title}</ListItem>
             ))}
+
+            {user && user.roles?.includes('Admin') && (
+              <ListItem component={NavLink} to={"/inventory"} sx={navStyles}>
+                INVENTORY
+              </ListItem>
+            )}
           </List>
 
           <Box sx={{ display: 'flex' }}>
@@ -70,14 +76,17 @@ export default function Header(props: any) {
                   <ListItem component={NavLink} to={path} key={path} sx={{ color: "inherit" }}>
                     {title.toUpperCase()}
                   </ListItem>
-                ))
-                }
+                ))}                 
               </List>
+
+
             )}
 
             {/* <List sx={{ display: 'flex' }}>
               {rightLinks.map(({ title, path }) => (
-                <ListItem key={title} component={NavLink} to={path} sx={navStyles}>{title}</ListItem>
+                <ListItem key={title} component={NavLink} to={path} sx={navStyles}>
+                  {title}
+                </ListItem>
               ))}
             </List> */}
 

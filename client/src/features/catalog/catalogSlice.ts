@@ -112,7 +112,18 @@ export const catalogSlice = createSlice({
     setPageNumber: (state, action) => {
       state.productsLoaded = false;
       state.productParams = {...state.productParams, ...action.payload};
-    }      
+    },
+    
+    setProduct: (state, action) => {
+      productsAdapter.upsertOne(state, action.payload);
+      state.productsLoaded = false;
+    }, 
+
+    // new reducer
+    removeProduct: (state, action) => {
+      productsAdapter.removeOne(state, action.payload); //มีไว้ท าอะไร
+      state.productsLoaded = false; //state เปลี่ยนไปท าการโหลดข้อมูลมาใหม่ที่ useProduct.tsx
+      }
   },
 
   extraReducers: (builder) => {
@@ -161,4 +172,4 @@ export const productSelectors = productsAdapter.getSelectors(
 
 export default catalogSlice.reducer;
 
-export const {setProductParams, resetProductParams, setMetaData, setPageNumber} = catalogSlice.actions;
+export const {setProductParams, resetProductParams, setMetaData, setPageNumber, setProduct, removeProduct} = catalogSlice.actions;

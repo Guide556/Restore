@@ -18,6 +18,7 @@ namespace API.Data
                 };
                 await userManager.CreateAsync(user, "Pa$$w0rd"); //ทำการ hash Password
                 await userManager.AddToRoleAsync(user, "Member"); // มีRole เดียว
+                
                 var admin = new User
                 {
                     UserName = "admin",
